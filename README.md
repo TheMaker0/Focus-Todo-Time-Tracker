@@ -3,6 +3,4 @@ Focus is a single-page task and time management dashboard built for people who w
 
 
 
-
-<img width="1347" height="592" alt="image" src="https://github.com/user-attachments/assets/b3b4b276-e6c8-488d-a4b0-d6b4bf62d405" />
-
+<img width="1344" height="599" alt="image" src="https://github.com/user-attachments/assets/8d4ee41c-5fbe-456f-9375-4a7b7c0b1612" />
