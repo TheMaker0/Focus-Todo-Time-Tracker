@@ -461,6 +461,37 @@
     const amBtn = DOM.get('formAMBtn');
     const pmBtn = DOM.get('formPMBtn');
 
+    function setAmPm(value){
+      if(value === 'AM'){
+        formIsAM = true;
+        if(amBtn){
+          amBtn.style.background = 'rgba(78,204,163,0.2)';
+          amBtn.style.borderColor = 'rgba(78,204,163,0.4)';
+          amBtn.style.color = 'var(--todo)';
+        }
+        if(pmBtn){
+          pmBtn.style.background = 'transparent';
+          pmBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+          pmBtn.style.color = 'var(--muted)';
+        }
+      } else {
+        formIsAM = false;
+        if(pmBtn){
+          pmBtn.style.background = 'rgba(78,204,163,0.2)';
+          pmBtn.style.borderColor = 'rgba(78,204,163,0.4)';
+          pmBtn.style.color = 'var(--todo)';
+        }
+        if(amBtn){
+          amBtn.style.background = 'transparent';
+          amBtn.style.borderColor = 'rgba(255,255,255,0.1)';
+          amBtn.style.color = 'var(--muted)';
+        }
+      }
+      updateFormTimeInput();
+    }
+
+    window.setAmPm = setAmPm;
+
     function updateFormTimeDisplay(){
       let h = parseInt(hourSlider.value);
       const m = parseInt(minSlider.value);
@@ -484,27 +515,8 @@
     if(hourSlider) hourSlider.addEventListener('input', updateFormTimeDisplay);
     if(minSlider) minSlider.addEventListener('input', updateFormTimeDisplay);
 
-    if(amBtn) amBtn.addEventListener('click', () => {
-      formIsAM = true;
-      amBtn.style.background = 'rgba(78,204,163,0.2)';
-      amBtn.style.borderColor = 'rgba(78,204,163,0.4)';
-      amBtn.style.color = 'var(--todo)';
-      pmBtn.style.background = 'transparent';
-      pmBtn.style.borderColor = 'rgba(255,255,255,0.1)';
-      pmBtn.style.color = 'var(--muted)';
-      updateFormTimeInput();
-    });
-
-    if(pmBtn) pmBtn.addEventListener('click', () => {
-      formIsAM = false;
-      pmBtn.style.background = 'rgba(78,204,163,0.2)';
-      pmBtn.style.borderColor = 'rgba(78,204,163,0.4)';
-      pmBtn.style.color = 'var(--todo)';
-      amBtn.style.background = 'transparent';
-      amBtn.style.borderColor = 'rgba(255,255,255,0.1)';
-      amBtn.style.color = 'var(--muted)';
-      updateFormTimeInput();
-    });
+    if(amBtn) amBtn.addEventListener('click', () => setAmPm('AM'));
+    if(pmBtn) pmBtn.addEventListener('click', () => setAmPm('PM'));
     
     // Countdown ticker
     startTicker();

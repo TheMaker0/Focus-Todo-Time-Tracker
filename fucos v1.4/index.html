@@ -37,15 +37,39 @@
 html { height: 100%; }
 body {
   min-height: 100%;
-  /* Background image (uses img/bg.jpg in the project). Fallback to solid color */
-  background-image: url('img/bg.jpg');
-  background-position: center 10%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background: radial-gradient(circle at top left, rgba(78,204,163,0.04), transparent 20%),
+              radial-gradient(circle at bottom right, rgba(123,140,255,0.05), transparent 18%),
+              #0E0F13;
   font-family: 'Lato', sans-serif;
   color: var(--text);
   overflow-x: hidden;
+}
+
+.bg-sliding-text {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-sliding-text span {
+  display: inline-block;
+  white-space: nowrap;
+  color: rgba(255,255,255,0.08);
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(3rem, 6vw, 7rem);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  animation: slideText 40s linear infinite;
+}
+
+@keyframes slideText {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
 }
 
 /* dark overlay to keep contrast when using a background image */
@@ -77,6 +101,37 @@ body.print-active::before {
   box-shadow: 0 8px 24px rgba(0,0,0,0.6);
   z-index: 16000;
   display: none; /* show only when image loads */
+}
+
+.code-marquee {
+  position: fixed;
+  top: 100px;
+  right: 110px;
+  width: min(540px, calc(100vw - 160px));
+  height: 56px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+  overflow: hidden;
+  z-index: 16000;
+  display: flex;
+  align-items: center;
+  padding-left: 24px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+}
+
+.code-marquee span {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 16s linear infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
 }
 
 .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
@@ -796,6 +851,9 @@ input[type="range"]::-moz-range-track {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+<div class="bg-sliding-text" aria-hidden="true">
+  <span>HTML · CSS · JavaScript · Python · Java · C++ · Rust · Go · TypeScript · SQL · PHP · Ruby · HTML · CSS · JavaScript · Python · Java · C++ · Rust · Go · TypeScript · SQL · PHP · Ruby</span>
+</div>
 
 <!-- ════════ PRINT LOG AREA (only visible when printing) ════════ -->
 <div class="print-log-area" id="printLogArea">
@@ -860,8 +918,10 @@ input[type="range"]::-moz-range-track {
       </div>
     </div>
 
-    <!-- User avatar (place an image at img/face.jpg to show) -->
-    <img id="bgAvatar" class="bg-avatar" src="img/face.jpg" alt="User avatar">
+    <!-- Sliding code language marquee -->
+    <div id="codeMarquee" class="code-marquee" aria-hidden="true">
+      <span>HTML · CSS · JavaScript · Python · Java · C++ · Rust · Go · TypeScript · SQL · PHP · Ruby · HTML · CSS · JavaScript · Python · Java · C++ · Rust · Go · TypeScript · SQL · PHP · Ruby</span>
+    </div>
   </div>
 
   <!-- ETC Modal -->
@@ -1368,8 +1428,8 @@ input[type="range"]::-moz-range-track {
                 </div>
 
                 <div style="display:flex;gap:8px;justify-content:center;">
-                  <button id="formAMBtn" onclick="setAmPm('AM')" style="width:64px;padding:10px;border-radius:10px;background:rgba(78,204,163,0.12);border:1px solid rgba(78,204,163,0.25);color:var(--todo);font-size:13px;font-weight:700;cursor:pointer;">AM</button>
-                  <button id="formPMBtn" onclick="setAmPm('PM')" style="width:64px;padding:10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;">PM</button>
+                  <button id="formAMBtn" style="width:64px;padding:10px;border-radius:10px;background:rgba(78,204,163,0.12);border:1px solid rgba(78,204,163,0.25);color:var(--todo);font-size:13px;font-weight:700;cursor:pointer;">AM</button>
+                  <button id="formPMBtn" style="width:64px;padding:10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.08);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;">PM</button>
                 </div>
               </div>
 

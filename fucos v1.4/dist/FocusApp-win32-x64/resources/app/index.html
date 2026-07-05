@@ -37,15 +37,39 @@
 html { height: 100%; }
 body {
   min-height: 100%;
-  /* Background image (uses img/bg.jpg in the project). Fallback to solid color */
-  background-image: url('img/bg.jpg');
-  background-position: center 10%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background: radial-gradient(circle at top left, rgba(78,204,163,0.04), transparent 20%),
+              radial-gradient(circle at bottom right, rgba(123,140,255,0.05), transparent 18%),
+              #0E0F13;
   font-family: 'Lato', sans-serif;
   color: var(--text);
   overflow-x: hidden;
+}
+
+.bg-sliding-text {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bg-sliding-text span {
+  display: inline-block;
+  white-space: nowrap;
+  color: rgba(255,255,255,0.08);
+  font-family: 'DM Mono', monospace;
+  font-size: clamp(3rem, 6vw, 7rem);
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  animation: slideText 40s linear infinite;
+}
+
+@keyframes slideText {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
 }
 
 /* dark overlay to keep contrast when using a background image */
@@ -680,6 +704,9 @@ body.print-active::before {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+<div class="bg-sliding-text" aria-hidden="true">
+  <span>HTML · CSS · JavaScript · Python · Java · C++ · Rust · Go · TypeScript · SQL · PHP · Ruby · HTML · CSS · JavaScript · Python · Java · C++ · Rust · Go · TypeScript · SQL · PHP · Ruby</span>
+</div>
 
 <!-- ════════ PRINT LOG AREA (only visible when printing) ════════ -->
 <div class="print-log-area" id="printLogArea">
