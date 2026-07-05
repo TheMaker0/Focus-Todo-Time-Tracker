@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0E0F13;
+  --surface: #16181F;
+  --surface2: #1E2029;
+  --border: rgba(255,255,255,0.07);
+  --text: #F0EEE8;
+  --muted: #6B6F80;
+  --accent: #4ECCA3;
+  --danger: #E05C97;
+  --radius: 18px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: radial-gradient(circle at top left, rgba(78,204,163,0.18), transparent 30%), radial-gradient(circle at bottom right, rgba(123,140,255,0.12), transparent 30%), var(--bg); color: var(--text); font-family: 'Lato', sans-serif; }
+body { padding: 24px; }
+.page { max-width: 1200px; margin: 0 auto; }
+.page-header { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.page-title { font-family: 'Syne', sans-serif; font-size: 34px; font-weight: 800; letter-spacing: -1px; }
+.page-subtitle { color: var(--muted); margin-top: 8px; }
+.button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.button { padding: 12px 18px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-weight: 700; transition: all 0.18s ease; }
+.button:hover { background: rgba(255,255,255,0.06); }
+.button.primary { background: var(--accent); color: #0E0F13; border-color: rgba(78,204,163,0.4); }
+.button.danger { background: rgba(224,92,151,0.16); color: var(--danger); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.status-pill { display: inline-flex; padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: .6px; text-transform: uppercase; background: rgba(78,204,163,0.12); color: var(--accent); }
+.status-pill.admin { background: rgba(123,140,255,0.14); color: #7B8CFF; }
+.table-wrapper { overflow-x: auto; margin-top: 18px; }
+table { width: 100%; border-collapse: collapse; min-width: 880px; }
+th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+th { color: var(--muted); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+tbody tr:hover { background: rgba(255,255,255,0.03); }
+.user-count { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.metric { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 16px 18px; min-width: 180px; }
+.metric-title { color: var(--muted); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.metric-value { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; }
+.notice { margin-top: 14px; color: var(--muted); font-size: 13px; }
+@media (max-width: 820px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .button-group { width: 100%; }
+}
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Admin Dashboard</div>
+        <div class="page-subtitle">Manage Focus users, monitor activity, and review stored data in MySQL.</div>
+      </div>
+      <div class="button-group">
+        <button id="refreshButton" class="button primary">Refresh Users</button>
+        <button id="createUserButton" class="button primary">Create User</button>
+        <button id="openAppButton" class="button">Open User App</button>
+        <button id="logoutButton" class="button danger">Logout</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="user-count" id="userMetrics"></div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Display</th>
+              <th>Role</th>
+              <th>Items</th>
+              <th>Done</th>
+              <th>Outstanding</th>
+              <th>Day Log Entries</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+      <div class="notice">Users are stored in the MySQL database. Update <code>api/db_config.php</code> with your SiteGround credentials if needed.</div>
+    </div>
+  </div>
+<script src="admin.js"></script>
+</body>
+</html>

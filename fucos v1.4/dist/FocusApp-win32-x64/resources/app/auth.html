@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unlock Focus</title>
+  <style>
+    body { margin:0; font-family: Inter, Lato, sans-serif; background: linear-gradient(180deg,#0b0c0f,#0e0f13); color: #e6eef0; display:flex; align-items:center; justify-content:center; height:100vh; }
+    .card { width:360px; background: rgba(255,255,255,0.03); border-radius:12px; padding:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.04); }
+    h1 { margin:0 0 10px 0; font-size:18px; letter-spacing:0.04em; }
+    .subtitle { font-size:12px; color:#9aa3a8; margin-bottom:14px; }
+    input[type=password] { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); color:#eaf3f5; font-size:14px; }
+    .row { display:flex; gap:8px; margin-top:14px; }
+    button { padding:10px 14px; border-radius:10px; border:none; cursor:pointer; font-weight:700; }
+    .primary { background:#4ed0a3; color:#071018; }
+    .secondary { background:transparent; border:1px solid rgba(255,255,255,0.06); color:#eaf3f5; }
+    .msg { margin-top:10px; font-size:13px; color:#f8a3b8; min-height:18px }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Enter Password</h1>
+    <div class="subtitle">Please enter the app password to continue.</div>
+    <input id="pw" type="password" autocomplete="off" placeholder="Password">
+    <div class="row">
+      <button id="ok" class="primary">Unlock</button>
+      <button id="cancel" class="secondary">Exit</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </div>
+  <script>
+    const pwEl = document.getElementById('pw');
+    const ok = document.getElementById('ok');
+    const cancel = document.getElementById('cancel');
+    const msg = document.getElementById('msg');
+
+    ok.addEventListener('click', () => {
+      const v = pwEl.value || '';
+      window.electronAPI.sendPassword(v);
+    });
+
+    cancel.addEventListener('click', () => {
+      window.electronAPI.sendPassword('__CANCEL__');
+    });
+
+    // receive auth result
+    window.electronAPI.onAuthResult((ok) => {
+      if (ok) {
+        msg.style.color = '#8be39b';
+        msg.textContent = 'Unlocked — launching...';
+      } else {
+        msg.style.color = '#f8a3b8';
+        msg.textContent = 'Incorrect password.';
+      }
+    });
+
+    pwEl.addEventListener('keyup', (e) => { if (e.key === 'Enter') ok.click(); });
+    pwEl.focus();
+  </script>
+</body>
+</html>

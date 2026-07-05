@@ -1,0 +1,12 @@
+# Enable rewrite rules for SiteGround / Apache hosting
+RewriteEngine On
+RewriteBase /
+
+# Route API save requests to PHP backend
+RewriteRule ^api/db$ /api/db.php [L,QSA]
+RewriteRule ^api/users$ /api/users.php [L,QSA]
+
+# Serve static files normally
+<IfModule mod_headers.c>
+  Header set Access-Control-Allow-Origin "*"
+</IfModule>

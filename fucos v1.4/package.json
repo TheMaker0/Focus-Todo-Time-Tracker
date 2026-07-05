@@ -1,0 +1,37 @@
+{
+  "name": "focus-database-server",
+  "version": "1.0.0",
+  "description": "Static focus app server with JSON persistence to database.json",
+  "main": "electron-main.js",
+  "bin": "server.js",
+  "scripts": {
+    "start": "electron .",
+    "start-server": "node server.js",
+    "start:electron": "electron .",
+    "build-exe": "pkg . --targets node18-win-x64 --output FocusApp.exe",
+    "package:win": "electron-packager . FocusApp --platform=win32 --arch=x64 --out=dist --overwrite --asar=false"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.18.4",
+    "nodemailer": "^6.9.4"
+  },
+  "devDependencies": {
+    "electron": "^26.6.10",
+    "electron-packager": "^17.1.1",
+    "pkg": "^5.8.1"
+  },
+  "pkg": {
+    "bin": "server.js",
+    "assets": [
+      "index.html",
+      "login.html",
+      "admin.html",
+      "app.js",
+      "login.js",
+      "admin.js",
+      "print.js",
+      "splash.html"
+    ]
+  }
+}

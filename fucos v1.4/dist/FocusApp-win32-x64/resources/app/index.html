@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus — Todo & Time Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #0E0F13;
+  --surface:      #16181F;
+  --surface2:     #1E2029;
+  --border:       rgba(255,255,255,0.07);
+  --border2:      rgba(255,255,255,0.13);
+  --text:         #F0EEE8;
+  --muted:        #6B6F80;
+  --muted2:       #9295A4;
+  --todo:         #4ECCA3;
+  --todo-bg:      rgba(78,204,163,0.10);
+  --ongoing:      #F5A623;
+  --ongoing-bg:   rgba(245,166,35,0.10);
+  --pending:      #E05C97;
+  --pending-bg:   rgba(224,92,151,0.10);
+  --done:         #6B7280;
+  --done-bg:      rgba(107,114,128,0.10);
+  --note:         #7B8CFF;
+  --note-bg:      rgba(123,140,255,0.10);
+  --fab:          #4ECCA3;
+  --fab-shadow:   0 8px 32px rgba(78,204,163,0.30);
+  --radius:       14px;
+  --radius-sm:    10px;
+  --sidebar-w:    260px;
+}
+
+html { height: 100%; }
+body {
+  min-height: 100%;
+  /* Background image (uses img/bg.jpg in the project). Fallback to solid color */
+  background-image: url('img/bg.jpg');
+  background-position: center 10%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: 'Lato', sans-serif;
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* dark overlay to keep contrast when using a background image */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  /* stronger dark top gradient to keep header readable */
+  background: linear-gradient(180deg, rgba(14,15,19,0.95), rgba(14,15,19,0.85));
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* When showing the print view we disable the dark overlay so printed area is readable */
+body.print-active::before {
+  display: none !important;
+}
+
+/* user avatar over the header */
+.bg-avatar {
+  position: fixed;
+  top: 100px;
+  right: 110px; /* leave space for add/import buttons */
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.06);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  z-index: 16000;
+  display: none; /* show only when image loads */
+}
+
+.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 36px 0 24px; position: sticky; top: 0;
+  height: 100vh; overflow-y: auto;
+}
+.sidebar-brand { padding: 0 24px 28px; border-bottom: 1px solid var(--border); }
+.sidebar-brand .app-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+.sidebar-brand .app-title span { color: var(--fab); }
+.sidebar-brand .app-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.sidebar-stats { padding: 20px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; border-bottom: 1px solid var(--border); }
+.sstat { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px 12px; border-radius: var(--radius-sm); background: var(--surface2); border: 1px solid var(--border); text-align: center; }
+.sstat-icon { font-size: 20px; }
+.sstat-info { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.sstat-label { font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); }
+.sstat-val { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; line-height: 1; margin-top: 4px; }
+
+.sidebar-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.nav-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); padding: 0 8px; margin: 8px 0 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.18s; color: var(--muted2); font-size: 13px; font-weight: 600; border: 1px solid transparent; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: var(--todo-bg); color: var(--todo); border-color: rgba(78,204,163,0.20); }
+.nav-item.active .nav-count { background: rgba(78,204,163,0.20); color: var(--todo); }
+.nav-icon { font-size: 15px; flex-shrink: 0; }
+.nav-text { flex: 1; }
+.nav-count { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--surface2); color: var(--muted2); }
+
+.sidebar-footer { padding: 16px 16px 0; border-top: 1px solid var(--border); }
+.footer-credit { margin-top: 14px; font-size: 11px; color: #ffffff; text-align: center; font-family: 'DM Mono', monospace; }
+.footer-credit a { color: #ffffff; text-decoration: none; }
+.date-chip-side { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted2); letter-spacing: 0.5px; padding: 6px 10px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+.print-btn-side { width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--todo-bg); border: 1px solid rgba(78,204,163,0.30); color: var(--todo); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.print-btn-side:hover { background: var(--todo); color: #0E0F13; }
+
+/* Daily Log button in sidebar */
+.daylog-btn-side { width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); background: var(--ongoing-bg); border: 1px solid rgba(245,166,35,0.30); color: var(--ongoing); font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.daylog-btn-side:hover { background: var(--ongoing); color: #0E0F13; }
+
+/* MAIN CONTENT */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; height: 100vh; }
+  .main-topbar { padding: 28px 32px 0; flex-shrink: 0; background: var(--bg); position: relative; }
+.topbar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.page-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+.topbar-add-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: var(--radius-sm); border: none; background: var(--fab); color: #0E0F13; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: var(--fab-shadow); transition: all 0.2s; }
+.topbar-add-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.import-main-btn { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+.import-main-btn:hover { background: var(--surface); }
+
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.dstat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; display: flex; align-items: center; gap: 14px; }
+.dstat-icon { font-size: 22px; }
+.dstat-val { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; line-height: 1; }
+.dstat-lbl { font-size: 11px; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+
+.progress-wrap { margin-bottom: 20px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.progress-track { height: 5px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--todo); border-radius: 99px; transition: width 0.5s ease; }
+
+.tabs-bar { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+.tabs-bar::-webkit-scrollbar { display: none; }
+.tab { flex-shrink: 0; padding: 11px 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 7px; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--fab); }
+.tab-count { font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--surface2); }
+.tab.active .tab-count { background: var(--todo-bg); color: var(--todo); }
+
+.scroll-area { flex: 1; overflow-y: auto; padding: 20px 32px 40px; scrollbar-width: thin; scrollbar-color: var(--surface2) transparent; }
+.scroll-area::-webkit-scrollbar { width: 5px; }
+.scroll-area::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 99px; }
+
+.cards-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 1100px) { .cards-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1500px) { .cards-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+.section-label { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; grid-column: 1 / -1; }
+.section-label::after { content:''; flex:1; height:1px; background: var(--border); }
+
+/* CARD */
+.card { background: linear-gradient(135deg, var(--surface) 0%, rgba(22,24,31,0.8) 100%); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; position: relative; overflow: hidden; transition: all 0.22s cubic-bezier(0.22,1,0.36,1); animation: slideIn 0.3s cubic-bezier(0.22,1,0.36,1) both; cursor: default; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+.card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.12); }
+@keyframes slideIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+.card-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: linear-gradient(to bottom, currentColor, currentColor); border-radius: 0 4px 4px 0; opacity: 0.9; }
+.card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.card-check { width: 22px; height: 22px; border-radius: 8px; border: 2px solid var(--border2); flex-shrink: 0; margin-top: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; background: transparent; }
+.card-check:hover { border-color: var(--todo); background: rgba(78,204,163,0.08); }
+.card-check.checked { background: var(--todo); border-color: var(--todo); }
+.card-check.checked::after { content:'✓'; color: #0E0F13; font-size: 12px; font-weight: 900; }
+
+.card-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.35; flex: 1 1 0; min-width: 0; word-break: break-word; }
+.card-title.done-text { text-decoration: line-through; color: var(--muted); }
+.card-body { font-size: 13px; color: var(--muted2); line-height: 1.6; margin-bottom: 12px; word-break: break-word; padding-left: 0; }
+
+.time-track { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.time-chip { font-family: 'DM Mono', monospace; font-size: 11px; padding: 6px 11px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; backdrop-filter: blur(4px); }
+.tc-in  { background: rgba(78,204,163,0.15);  color: var(--todo);    border: 1px solid rgba(78,204,163,0.35); }
+.tc-out { background: rgba(224,92,151,0.15);  color: var(--pending); border: 1px solid rgba(224,92,151,0.35); }
+.tc-dur { background: rgba(245,166,35,0.15);  color: var(--ongoing); border: 1px solid rgba(245,166,35,0.35); }
+.live-timer { font-family: 'DM Mono', monospace; font-size: 11px; padding: 6px 11px; border-radius: 8px; background: rgba(123,140,255,0.15); color: var(--note); border: 1px solid rgba(123,140,255,0.35); display: flex; align-items: center; justify-content: center; gap: 5px; font-weight: 600; }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--note); animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+
+
+.card-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.status-pill { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; padding: 5px 12px; border-radius: 8px; font-family: 'DM Mono', monospace; }
+.pill-todo    { background: var(--todo-bg);    color: var(--todo); border: 1px solid rgba(78,204,163,0.30); }
+.pill-ongoing { background: var(--ongoing-bg); color: var(--ongoing); border: 1px solid rgba(245,166,35,0.30); }
+.pill-pending { background: var(--pending-bg); color: var(--pending); border: 1px solid rgba(224,92,151,0.30); }
+.pill-done    { background: var(--done-bg);    color: var(--done); border: 1px solid rgba(107,114,128,0.30); }
+.pill-note    { background: var(--note-bg);    color: var(--note); border: 1px solid rgba(123,140,255,0.30); }
+
+.card-meta { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); }
+.card-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.18s; }
+.card:hover .card-actions { opacity: 1; }
+.act-btn { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted2); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.act-btn:hover { background: var(--todo-bg); color: var(--todo); border-color: var(--todo); }
+.act-btn.del:hover { background: rgba(224,92,151,0.15); color: var(--pending); border-color: var(--pending); }
+.note-card .card-title { color: var(--note); }
+
+/* Account tag on ongoing cards */
+.account-tag { font-size: 11px; color: var(--ongoing); background: var(--ongoing-bg); border: 1px solid rgba(245,166,35,0.30); border-radius: 6px; padding: 2px 8px; margin-left: 6px; font-weight: 700; white-space: nowrap; }
+
+/* EMPTY STATE */
+.empty { text-align: center; padding: 80px 20px; animation: fadeIn 0.4s both; grid-column: 1 / -1; }
+.empty-icon  { font-size: 52px; margin-bottom: 14px; opacity: 0.35; }
+.empty-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; color:var(--muted); }
+.empty-sub   { font-size:12px; color:var(--muted); margin-top:7px; }
+@keyframes fadeIn { from{opacity:0}to{opacity:1} }
+
+/* HISTORY */
+.hist-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; opacity: 0.75; animation: slideIn 0.3s both; }
+.hist-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.hist-text { flex: 1; }
+.hist-title { font-size: 13px; font-weight: 600; color: var(--muted2); text-decoration: line-through; }
+.hist-meta  { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 3px; }
+.hist-restore { font-size: 11px; font-weight: 700; color: var(--todo); cursor: pointer; padding: 4px 9px; border-radius: 6px; border: 1px solid var(--todo-bg); background: var(--todo-bg); white-space: nowrap; transition: all 0.15s; }
+.hist-restore:hover { background: var(--todo); color: #0E0F13; }
+
+/* DAILY LOG TAB */
+.daylog-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; grid-column: 1 / -1; flex-wrap: wrap; gap: 10px; }
+.daylog-selector { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.day-pill { font-family: 'DM Mono', monospace; font-size: 11px; padding: 6px 14px; border-radius: 20px; cursor: pointer; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted2); transition: all 0.18s; white-space: nowrap; }
+.day-pill.active { background: var(--ongoing-bg); color: var(--ongoing); border-color: rgba(245,166,35,0.40); }
+.day-pill:hover { color: var(--text); }
+.new-day-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; border: 1px solid rgba(78,204,163,0.30); background: var(--todo-bg); color: var(--todo); transition: all 0.18s; }
+.new-day-btn:hover { background: var(--todo); color: #0E0F13; }
+.print-day-btn { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer; border: 1px solid rgba(123,140,255,0.30); background: var(--note-bg); color: var(--note); transition: all 0.18s; display: flex; align-items: center; gap: 6px; }
+.print-day-btn:hover { background: var(--note); color: #0E0F13; }
+
+.template-label { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; }
+.template-select { min-width: 160px; background: var(--surface2); color: var(--text); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; font-size: 12px; }
+.template-select:focus { outline: none; border-color: rgba(78,204,163,0.5); }
+
+.template-button-panel { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.template-btn,
+.template-add-btn,
+.template-view-btn {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.template-btn.selected {
+  background: var(--todo-bg);
+  border-color: rgba(78,204,163,0.45);
+  color: var(--todo);
+}
+.template-btn:hover,
+.template-add-btn:hover,
+.template-view-btn:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.template-modal-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 24px;
+}
+.template-modal-bg.open { display: flex; }
+.template-modal {
+  width: min(100%, 760px);
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+  /* SUPPORT (Buy Me a Coffee) topbar button - neutral X */
+  .support-top-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid rgba(78,204,163,0.18);
+    color: var(--todo);
+    font-size: 18px;
+    cursor: pointer;
+    position: absolute;
+    right: 28px; /* align with right side buttons */
+    top: 150px;   /* nudge lower to align with mark */
+    box-shadow: none;
+  }
+  .support-top-btn:hover { color: #ffffff; border-color: rgba(78,204,163,0.35); }
+
+  #supportModalBg { position: fixed; inset: 0; display: none; z-index: 17000; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); }
+  #supportModal {
+    width: min(1100px, 96%);
+    height: 420px;
+    background: linear-gradient(180deg, rgba(18,18,22,0.98), rgba(20,20,24,0.98));
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.04);
+    padding: 22px;
+    color: var(--text);
+    box-shadow: 0 30px 90px rgba(0,0,0,0.7);
+    display: flex;
+    gap: 24px;
+    align-items: stretch;
+    position: relative;
+    overflow: hidden;
+  }
+  /* left QR panel */
+  #supportModal .left-qr { width: 320px; display:flex; align-items:center; justify-content:center; position: relative; }
+  #supportModal .qr-box { width:220px; height:220px; background:#fff; border-radius:18px; display:flex; align-items:center; justify-content:center; box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+  #supportModal .left-accent { position:absolute; left:8px; top:8px; bottom:8px; width:6px; background: linear-gradient(180deg, var(--ongoing), #ffb347); border-radius:12px; }
+
+  /* right content */
+  #supportModal .right { flex:1; display:flex; flex-direction:column; justify-content:center; padding:12px 18px; }
+  #supportModal .modal-title { font-family: 'Syne', sans-serif; font-size:44px; font-weight:800; margin-bottom:8px; }
+  #supportModal .modal-sub { color: var(--muted2); font-size:18px; margin-bottom:28px; }
+  #supportModal .divider { display:flex; align-items:center; gap:12px; margin-top:6px; margin-bottom:6px; }
+  #supportModal .divider::before, #supportModal .divider::after { content:''; flex:1; height:2px; background: rgba(255,255,255,0.03); }
+  #supportModal .heart { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.04); color: #ffdd57; }
+  #supportModal .phone { font-family: 'DM Mono', monospace; font-size:16px; color:var(--text); margin-bottom:8px; }
+  #supportModal .bmc-btn { display:inline-block; padding:12px 16px; border-radius:12px; background: #ffdd57; color:#111; font-weight:800; text-decoration:none; }
+
+  /* close X inside modal (neutral rounded square, no filled color) */
+  #supportModal .modal-close { position:absolute; right:22px; top:22px; width:52px; height:52px; border-radius:14px; border:1px solid rgba(255,255,255,0.06); background: transparent; color: var(--muted2); display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; }
+.template-modal-header,
+.template-modal-footer {
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.template-modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+}
+.modal-close {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted2);
+  font-size: 18px;
+  cursor: pointer;
+}
+.template-modal-body {
+  padding: 0 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.template-input,
+.template-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 13px;
+}
+.template-textarea {
+  min-height: 180px;
+  font-family: 'DM Mono', monospace;
+}
+.template-upload-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.template-preview-area {
+  min-height: 140px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 16px;
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+  overflow: auto;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+}
+.template-save-btn,
+.template-cancel-btn,
+.template-upload-btn,
+.template-preview-btn {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+}
+.template-save-btn { background: var(--todo-bg); color: var(--todo); }
+.template-cancel-btn { background: var(--surface2); color: var(--text); }
+.template-upload-btn,
+.template-preview-btn { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid rgba(255,255,255,0.08); }
+
+.daylog-table-wrap { grid-column: 1 / -1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.daylog-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.daylog-table th { background: var(--surface2); border: 1px solid var(--border2); padding: 11px 14px; font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted2); white-space: nowrap; text-align: center; }
+.daylog-table td { border: 1px solid var(--border); padding: 11px 14px; vertical-align: middle; }
+.daylog-table tbody tr:hover td { background: var(--surface2); }
+.daylog-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+.daylog-table td.num { text-align: center; font-family: 'DM Mono', monospace; color: var(--muted2); font-size: 11px; width: 40px; }
+.daylog-table td.acct { font-weight: 700; color: var(--ongoing); text-align: center; min-width: 100px; }
+.daylog-table td.task-cell { min-width: 200px; white-space: pre-wrap; }
+.daylog-table td.time-cell { text-align: center; font-family: 'DM Mono', monospace; font-size: 11px; white-space: nowrap; min-width: 80px; }
+.daylog-table td.dur-cell { text-align: center; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ongoing); font-weight: 700; }
+.daylog-table td.etc-cell { text-align: center; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--note); cursor: pointer; user-select: none; transition: background 0.15s; }
+.daylog-table td.etc-cell:hover { background: rgba(123,140,255,0.1); border-radius: 4px; }
+.daylog-table th.select-cell,
+.daylog-table td.select-cell { width: 44px; text-align: center; }
+.daylog-table tbody tr.selected td { background: rgba(78,204,163,0.12) !important; }
+.day-pill-close {
+  margin-left: 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+}
+.day-pill-close:hover { color: var(--todo); }
+.daylog-table td[contenteditable="true"] { background: rgba(255,255,255,0.03); cursor: text; }
+.daylog-table input[type="time"] {
+    width: 100%;
+    max-width: 120px;
+    padding: 6px 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-align: center;
+  }
+.daylog-total-row td { background: rgba(78,204,163,0.07) !important; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 12px; color: var(--todo); text-align: right; padding: 10px 14px; border: 1px solid var(--border); }
+.daylog-empty { text-align: center; padding: 40px; color: var(--muted); font-size: 13px; }
+.daylog-date-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); text-align: right; margin-bottom: 8px; grid-column: 1/-1; }
+
+.timezone-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 220px); max-width: 960px; margin: 0 auto; gap: 18px; text-align: center; padding: 60px 24px; }
+.timezone-clock { font-family: 'Syne', sans-serif; font-size: 72px; font-weight: 800; letter-spacing: -1px; line-height: 0.95; }
+.timezone-zone { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.timezone-task { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; color: var(--text); max-width: 760px; line-height: 1.2; }
+.timezone-note { font-size: 13px; color: var(--muted); max-width: 680px; }
+
+@media (max-width:767px) {
+  .timezone-panel { min-height: auto; padding: 28px 16px; }
+  .timezone-clock { font-size: 50px; }
+}
+
+/* Row delete btn */
+.log-del-btn { width: 22px; height: 22px; border-radius: 5px; border: none; background: var(--pending-bg); color: var(--pending); cursor: pointer; font-size: 10px; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+.log-del-btn:hover { background: var(--pending); color: #fff; }
+.daylog-table td.actions-cell { text-align: center; width: 36px; }
+
+/* Drag and drop styles */
+.daylog-table tbody tr.draggable-row { cursor: grab; }
+.daylog-table tbody tr.draggable-row:active { cursor: grabbing; }
+.daylog-table tbody tr.dragging { opacity: 0.5; background: rgba(78,204,163,0.1) !important; }
+.daylog-table tbody tr.drag-over td { border-top: 3px solid var(--todo); background: rgba(78,204,163,0.15) !important; }
+
+/* MOBILE */
+.mobile-header { display: none; }
+.mobile-fab-area { display: none; }
+
+@media (max-width: 767px) {
+  body { overflow: auto; }
+  .layout { flex-direction: column; min-height: 100vh; }
+  .sidebar { display: none; }
+  .main { height: auto; overflow: visible; }
+  .main-topbar { display: none; }
+
+  .mobile-header { display: block; padding: 48px 20px 0; background: linear-gradient(180deg, var(--bg) 70%, transparent); position: sticky; top: 0; z-index: 50; flex-shrink: 0; }
+  .mob-head-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+  .mob-title { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+  .mob-title span { color: var(--fab); }
+  .mob-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .mob-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .date-chip-mob { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted2); padding: 5px 11px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 20px; letter-spacing: 0.5px; }
+  .print-btn-mob { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--todo); padding: 5px 11px; background: var(--todo-bg); border: 1px solid rgba(78,204,163,0.30); border-radius: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+  .print-btn-mob:hover { background: var(--todo); color: #0E0F13; }
+
+  .mob-stats { display: flex; gap: 8px; margin-bottom: 16px; }
+  .mob-stat { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; }
+  .mob-stat-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; line-height: 1; }
+  .mob-stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; margin-top: 3px; font-weight: 700; }
+  .mob-tabs { display: flex; overflow-x: auto; scrollbar-width: none; padding-bottom: 1px; }
+  .mob-tabs::-webkit-scrollbar { display: none; }
+  .mob-tabs-border { height: 1px; background: var(--border); }
+  .scroll-area { overflow-y: visible; padding: 16px 16px 120px; height: auto; flex: none; }
+  .cards-grid { grid-template-columns: 1fr !important; }
+
+  .mobile-fab-area { display: block; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; padding: 14px 20px 28px; background: linear-gradient(0deg, var(--bg) 55%, transparent); }
+  .mob-fab-row { display: flex; align-items: center; gap: 10px; }
+  .mob-fab-extra { display: flex; gap: 8px; overflow: hidden; max-width: 0; opacity: 0; transition: max-width 0.35s ease, opacity 0.25s; }
+  .mob-fab-extra.open { max-width: 220px; opacity: 1; }
+  .mob-fab-mini { width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0; border: 1px solid var(--border2); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+  .mob-fab-mini:hover { transform: scale(1.08); }
+  .mob-fab-mini.todo-fab    { background: var(--todo-bg);    border-color: var(--todo); }
+  .mob-fab-mini.ongoing-fab { background: var(--ongoing-bg); border-color: var(--ongoing); }
+  .mob-fab-mini.pending-fab { background: var(--pending-bg); border-color: var(--pending); }
+  .mob-fab-mini.note-fab    { background: var(--note-bg);    border-color: var(--note); }
+  .mob-fab { width: 54px; height: 54px; border-radius: 17px; flex-shrink: 0; background: var(--fab); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--fab-shadow); transition: all 0.25s cubic-bezier(0.22,1,0.36,1); margin-left: auto; }
+  .mob-fab:hover { transform: scale(1.08) rotate(5deg); }
+  .mob-fab.open { transform: rotate(45deg); background: var(--pending); }
+  .mob-fab svg { width: 22px; height: 22px; color: #0E0F13; }
+  .card-actions { opacity: 1; }
+  .stats-row, .topbar-add-btn { display: none; }
+  .daylog-table { font-size: 11px; }
+  .daylog-table th, .daylog-table td { padding: 8px 8px; }
+}
+
+/* SHEET */
+.sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 300; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; backdrop-filter: blur(6px); }
+.sheet-bg.open { opacity: 1; pointer-events: all; }
+.sheet { width: 100%; max-width: 560px; background: var(--surface); border-radius: 24px 24px 0 0; padding: 0 0 40px; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.22,1,0.36,1); max-height: 90vh; overflow-y: auto; }
+.sheet-bg.open .sheet { transform: translateY(0); }
+.sheet-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 99px; margin: 14px auto 20px; }
+.sheet-head { padding: 0 22px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.sheet-view { width: 100%; display: flex; flex-direction: column; gap: 16px; }
+.sheet-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; }
+.sheet-header strong { font-family: 'Syne', sans-serif; font-weight: 700; }
+.sheet-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.sheet-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0 8px; }
+.sheet-tab, .sheet-tab-add { border: 1px solid var(--border2); background: var(--surface2); color: var(--muted2); border-radius: 14px; padding: 10px 14px; cursor: pointer; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+.sheet-tab.active { background: var(--surface); color: var(--text); border-color: var(--border); }
+.sheet-tab:hover, .sheet-tab-add:hover { background: var(--surface); color: var(--text); }
+.sheet-tab-close { margin-left: 8px; color: var(--pending); font-weight: 900; cursor: pointer; }
+.sheet-tab-close:hover { color: #fff; }
+.excel-table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border2); }
+.excel-table th, .excel-table td { border: 1px solid rgba(255,255,255,0.08); padding: 12px 10px; font-size: 13px; }
+.excel-table th { background: rgba(255,255,255,0.05); color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
+.excel-input { width: 100%; border: none; background: transparent; color: var(--text); outline: none; font-family: 'Lato', sans-serif; font-size: 13px; padding: 6px 4px; }
+.excel-table tr:hover td { background: rgba(255,255,255,0.03); }
+.excel-table td .act-btn { width: auto; padding: 8px 12px; }
+.sheet-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+.sheet-close { width: 30px; height: 30px; border-radius: 9px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted2); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+.sheet-close:hover { color: var(--pending); }
+.sheet-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+
+.inp-group { display: flex; flex-direction: column; gap: 6px; }
+.inp-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.inp, .txta { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Lato', sans-serif; font-size: 14px; color: var(--text); outline: none; width: 100%; transition: border-color 0.2s, box-shadow 0.2s; }
+.inp::placeholder, .txta::placeholder { color: var(--muted); }
+.inp:focus, .txta:focus { border-color: var(--fab); box-shadow: 0 0 0 3px rgba(78,204,163,0.12); }
+.txta { resize: none; min-height: 80px; line-height: 1.6; }
+
+.type-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.type-btn { flex: 1; min-width: 70px; padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--surface2); color: var(--muted2); font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.18s; white-space: nowrap; }
+.type-btn:hover { color: var(--text); }
+.type-btn.sel-todo    { background: var(--todo-bg);    color: var(--todo);    border-color: var(--todo); }
+.type-btn.sel-ongoing { background: var(--ongoing-bg); color: var(--ongoing); border-color: var(--ongoing); }
+.type-btn.sel-pending { background: var(--pending-bg); color: var(--pending); border-color: var(--pending); }
+.type-btn.sel-note    { background: var(--note-bg);    color: var(--note);    border-color: var(--note); }
+
+.time-fields { display: flex; gap: 10px; flex-wrap: wrap; }
+.time-fields .inp { flex: 1; }
+
+.save-btn, .import-btn { width: 100%; padding: 14px; border-radius: var(--radius-sm); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; }
+.save-btn { border: none; background: var(--fab); color: #0E0F13; box-shadow: var(--fab-shadow); }
+.import-btn { border: 1px solid var(--border2); background: var(--surface2); color: var(--text); margin-bottom: 10px; }
+.save-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.import-btn:hover { background: var(--surface); }
+
+.user-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+.auth-bg { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+.auth-bg.open { opacity: 1; pointer-events: all; }
+.auth-card { width: min(100%, 420px); background: var(--surface); border-radius: 24px; padding: 28px; box-shadow: 0 24px 60px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.06); }
+.auth-title { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; margin-bottom: 24px; text-align: center; }
+.auth-tabs { display: flex; gap: 10px; margin-bottom: 24px; }
+.auth-tab { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid transparent; background: transparent; color: var(--muted2); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.auth-tab.active { border-color: var(--fab); color: var(--fab); }
+.auth-sub { color: var(--muted); font-size: 13px; margin-bottom: 18px; text-align: center; display: none; }
+.auth-sub.visible { display: block; }
+.auth-note { color: var(--pending); font-size: 12px; min-height: 18px; text-align: center; margin-bottom: 12px; }
+.auth-input { width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 14px; margin-bottom: 18px; }
+.auth-input::placeholder { color: var(--muted); }
+.auth-actions { display: flex; justify-content: center; gap: 10px; }
+.auth-btn { padding: 14px 28px; border-radius: 14px; border: none; background: var(--fab); color: #0E0F13; font-weight: 700; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+.auth-btn:hover { filter: brightness(1.1); }
+.auth-close { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border-radius: 10px; background: transparent; border: none; color: var(--muted); font-size: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+.notification { position: fixed; bottom: 24px; right: 24px; z-index: 500; padding: 14px 20px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border2); color: var(--text); font-size: 13px; font-weight: 600; animation: slideIn 0.3s ease-out; }
+@keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.notification.success { border-color: rgba(78,204,163,0.3); background: rgba(78,204,163,0.1); color: var(--todo); }
+.notification.error { border-color: rgba(224,92,151,0.3); background: rgba(224,92,151,0.1); color: var(--pending); }
+
+.add-fab-desktop { display: flex; gap: 8px; }
+.add-type-btn { display: flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: var(--radius-sm); border: none; font-family: 'Lato', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.18s; }
+.add-type-btn.todo-btn    { background: var(--todo-bg);    color: var(--todo);    border: 1px solid rgba(78,204,163,0.30); }
+.add-type-btn.ongoing-btn { background: var(--ongoing-bg); color: var(--ongoing); border: 1px solid rgba(245,166,35,0.30); }
+.add-type-btn.pending-btn { background: var(--pending-bg); color: var(--pending); border: 1px solid rgba(224,92,151,0.30); }
+.add-type-btn.note-btn    { background: var(--note-bg);    color: var(--note);    border: 1px solid rgba(123,140,255,0.30); }
+.add-type-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+/* ═══════════════════════════════════
+   PRINT STYLES — Daily Log Format
+   ═══════════════════════════════════ */
+@media print {
+  body { background: #fff !important; color: #111 !important; overflow: auto !important; }
+  .sidebar, .mobile-header, .mobile-fab-area,
+  .main-topbar, .tabs-bar, .card-actions,
+  .sheet-bg, .progress-wrap,
+  .daylog-header, .daylog-selector,
+  .log-del-btn, .actions-cell { display: none !important; }
+  .layout, .main { display: block !important; height: auto !important; }
+  .scroll-area { overflow: visible !important; padding: 0 !important; height: auto !important; }
+  .cards-grid { display: block !important; }
+
+  /* Show only the print-log area */
+  .print-log-area { display: block !important; }
+
+  /* Print header */
+  .print-log-header { display: block !important; }
+
+  /* Table print styles */
+  .print-log-area .daylog-table-wrap {
+    background: #fff !important;
+    border: 1px solid #ccc !important;
+    border-radius: 6px !important;
+    overflow: visible !important;
+    margin: 0 auto !important;
+    max-width: 960px !important;
+  }
+  .print-log-area .daylog-table { font-size: 12px !important; }
+  .print-log-area .daylog-table th {
+    background: #d4e6c3 !important;
+    color: #333 !important;
+    border: 1px solid #aaa !important;
+    font-size: 11px !important;
+  }
+  .print-log-area .daylog-table td {
+    border: 1px solid #ccc !important;
+    color: #111 !important;
+    background: #fff !important;
+  }
+  .print-log-area .daylog-table tbody tr:nth-child(even) td { background: #fafff7 !important; }
+  .print-log-area .daylog-table td.acct { color: #555 !important; font-weight: 700 !important; }
+  .print-log-area .daylog-table td.dur-cell { color: #333 !important; font-weight: 700 !important; }
+  .print-log-area .daylog-total-row td {
+    background: #d4e6c3 !important;
+    color: #333 !important;
+    font-weight: 700 !important;
+    text-align: right !important;
+    font-size: 12px !important;
+  }
+
+  /* Hide app UI when printing log */
+  .scroll-area > .cards-grid { display: none !important; }
+}
+
+.print-log-area { display: none; }
+.print-log-header { display: none; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ════════ PRINT LOG AREA (only visible when printing) ════════ -->
+<div class="print-log-area" id="printLogArea">
+  <div class="print-log-header" id="printLogHeader" style="padding:16px 20px 10px; border-bottom: 2px solid #333; margin-bottom:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+      <div>
+        <div style="font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:#111;">Focus. — Daily Work Log</div>
+        <div style="font-size:11px; color:#666; margin-top:4px;" id="printLogDayLabel"></div>
+        <div style="font-size:11px; color:#666; margin-top:4px;" id="printLogTemplateLabel"></div>
+      </div>
+      <div style="font-size:11px; color:#666;" id="printLogDate"></div>
+    </div>
+  </div>
+  <div id="printLogTableContainer" style="padding: 0 20px 20px;"></div>
+</div>
+<div class="template-modal-bg" id="templateModalBg">
+  <div class="template-modal">
+    <div class="template-modal-header">
+      <div class="template-modal-title" id="templateModalTitle">Add Template</div>
+      <button class="modal-close" type="button" onclick="closeTemplateModal()">✕</button>
+    </div>
+    <div class="template-modal-body">
+      <div>
+        <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:6px;">Template Name</label>
+        <input id="templateNameInput" class="template-input" type="text" placeholder="Enter template name">
+      </div>
+      <div>
+        <label style="display:block; font-size:12px; color:var(--muted); margin-bottom:6px;">Template Content</label>
+        <textarea id="templateHtmlInput" class="template-textarea" placeholder="Type the Word template text here. Use {{TABLE}} for the task table."></textarea>
+      </div>
+      <div class="template-upload-row">
+        <button type="button" class="template-upload-btn" onclick="document.getElementById('templateUploadInput').click()">Import Text Template</button>
+        <button type="button" class="template-preview-btn" onclick="previewTemplateContent()">Preview</button>
+        <input type="file" id="templateUploadInput" accept=".txt" style="display:none;" onchange="importTemplateFile(event)">
+      </div>
+      <div id="templatePreviewArea" class="template-preview-area">Template preview will appear here.</div>
+    </div>
+    <div class="template-modal-footer">
+      <button type="button" class="template-save-btn" onclick="saveTemplateFromModal()">Save Template</button>
+      <button type="button" class="template-cancel-btn" onclick="closeTemplateModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+  
+    <!-- Import Pad Modal -->
+    <div id="importPadBg" style="display:none;position:fixed;inset:0;z-index:20010;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+    <div style="width:640px;background:var(--surface);border-radius:12px;padding:24px;border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase">IMPORT PAD</div>
+        <button onclick="closeImportPad()" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
+      </div>
+      <div style="margin-bottom:16px;color:var(--muted);font-size:13px;line-height:1.6">
+        <strong style="color:var(--text)">Format:</strong><br>
+        Line 1: Task type (e.g. ONGOING)<br>
+        Line 2: Code [TAB] Title<br>
+        Line 3: Account name
+      </div>
+      <textarea id="importPadTextarea" placeholder="ONGOING&#10;02-013	AGENCY > DEDUCTIONS > ADD > Description here&#10;ACCOUNT NAME" style="width:100%;height:180px;padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;resize:vertical"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+        <button onclick="closeImportPad()" style="background:transparent;border:1px solid var(--border);padding:10px 16px;border-radius:8px;color:var(--text);cursor:pointer">Cancel</button>
+        <button onclick="importPadSubmit()" style="background:var(--todo);border:none;padding:10px 16px;border-radius:8px;color:#000;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">Save</button>
+      </div>
+    </div>
+
+    <!-- User avatar (place an image at img/face.jpg to show) -->
+    <img id="bgAvatar" class="bg-avatar" src="img/face.jpg" alt="User avatar">
+  </div>
+
+  <!-- ETC Modal -->
+  <div id="etcModalBg" style="display:none;position:fixed;inset:0;z-index:20020;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+    <div style="width:420px;background:var(--surface);border-radius:12px;padding:18px;border:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-weight:700">Edit ETC</div>
+        <button onclick="closeEtcModal()" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
+      </div>
+      <div style="margin-bottom:12px;color:var(--muted);font-size:13px">Set or update the ETC/time for this task.</div>
+      <input id="etcInput" placeholder="e.g. 6:00PM" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);">
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+        <button onclick="closeEtcModal()" style="background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:var(--text);">Cancel</button>
+        <button onclick="saveEtc()" style="background:var(--todo);border:none;padding:8px 12px;border-radius:8px;color:#fff;font-weight:700;">Save</button>
+      </div>
+    </div>
+  </div>
+
+<!-- ════════ MOBILE HEADER ════════ -->
+<div class="mobile-header">
+  <div class="mob-head-top">
+    <div>
+      <div class="mob-title">Focus<span>.</span></div>
+      <div class="mob-sub">Your task space</div>
+    </div>
+    <div class="mob-right">
+      <div class="date-chip-mob" id="dateLblMob"></div>
+      
+    </div>
+  </div>
+
+  <div class="mob-stats">
+    <div class="mob-stat">
+      <div class="mob-stat-val" style="color:var(--todo)"    id="msTodo">0</div>
+      <div class="mob-stat-lbl">Todo</div>
+    </div>
+    <div class="mob-stat">
+      <div class="mob-stat-val" style="color:var(--ongoing)" id="msOngoing">0</div>
+      <div class="mob-stat-lbl">Active</div>
+    </div>
+    <div class="mob-stat">
+      <div class="mob-stat-val" style="color:var(--fab)"     id="msDone">0</div>
+      <div class="mob-stat-lbl">Done</div>
+    </div>
+    <div class="mob-stat">
+      <div class="mob-stat-val" style="color:var(--note)"    id="msNotes">0</div>
+      <div class="mob-stat-lbl">Notes</div>
+    </div>
+  </div>
+
+    <div class="mob-tabs" id="mobTabs">
+    <div class="tab active" data-tab="all">All <span class="tab-count" id="tcAllM">0</span></div>
+    <div class="tab" data-tab="todo">Todo <span class="tab-count" id="tcTodoM">0</span></div>
+    <div class="tab" data-tab="ongoing">Ongoing <span class="tab-count" id="tcOngoingM">0</span></div>
+    <div class="tab" data-tab="pending">Pending <span class="tab-count" id="tcPendingM">0</span></div>
+    <div class="tab" data-tab="note">Notes <span class="tab-count" id="tcNoteM">0</span></div>
+    <div class="tab" data-tab="done">Done <span class="tab-count" id="tcDoneM">0</span></div>
+    <div class="tab" data-tab="daylog">Day Log <span class="tab-count" id="tcDayLogM">0</span></div>
+    <div class="tab" data-tab="sheet">TabShet <span class="tab-count" id="tcSheetM">0</span></div>
+    <div class="tab" data-tab="timezone">Timezone</div>
+    <div class="tab" data-tab="history">History <span class="tab-count" id="tcHistoryM">0</span></div>
+  </div>
+  <div class="mob-tabs-border"></div>
+</div>
+
+<!-- ════════ MAIN LAYOUT ════════ -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="app-title">Focus<span>.</span></div>
+      <div class="app-sub">Your task space</div>
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="sstat">
+        <div class="sstat-icon">✅</div>
+        <div class="sstat-info">
+          <div class="sstat-label">Todo</div>
+          <div class="sstat-val" style="color:var(--todo)" id="dsTodo">0</div>
+        </div>
+      </div>
+      <div class="sstat">
+        <div class="sstat-icon">🔄</div>
+        <div class="sstat-info">
+          <div class="sstat-label">Active</div>
+          <div class="sstat-val" style="color:var(--ongoing)" id="dsOngoing">0</div>
+        </div>
+      </div>
+      <div class="sstat">
+        <div class="sstat-icon">✔️</div>
+        <div class="sstat-info">
+          <div class="sstat-label">Done</div>
+          <div class="sstat-val" style="color:var(--fab)" id="dsDone">0</div>
+        </div>
+      </div>
+      <div class="sstat">
+        <div class="sstat-icon">📝</div>
+        <div class="sstat-info">
+          <div class="sstat-label">Notes</div>
+          <div class="sstat-val" style="color:var(--note)" id="dsNotes">0</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Reports</div>
+      <div class="nav-item" data-tab="daylog" style="border-color: rgba(245,166,35,0.15);">
+        <span class="nav-icon">📋</span>
+        <span class="nav-text">Daily Log</span>
+        <span class="nav-count" id="ncDayLog">0</span>
+      </div>
+      <!-- <div class="nav-item" data-tab="sheet">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">TabShet</span>
+        <span class="nav-count" id="ncSheet">0</span>
+      </div> -->
+      <div class="nav-item" data-tab="timezone">
+        <span class="nav-icon">🌍</span>
+        <span class="nav-text">Timezone</span>
+      </div>
+      <div class="nav-item" data-tab="history">
+        <span class="nav-icon">🕰️</span>
+        <span class="nav-text">History</span>
+        <span class="nav-count" id="ncHistory">0</span>
+      </div>
+    </nav>
+
+<div class="sidebar-footer">
+  <div class="date-chip-side" id="dateLblSide"></div>
+  
+  <div class="db-dropdown-container">
+    <button class="print-btn-side main-dropdown-btn" onclick="toggleDbMenu()">
+      ⚙️ &nbsp;Settings
+    </button>
+    <div class="db-dropdown-menu" id="dbDropdownMenu">
+      <button class="print-btn-side" onclick="exportDb()">📦 &nbsp;Export DB</button>
+      <button class="print-btn-side" onclick="triggerImport()">📂 &nbsp;Import DB</button>
+    </div>
+  </div>
+
+  <a href="https://github.com/TheMaker0" target="_blank" rel="noopener noreferrer" style="text-decoration: none; width: 100%;">
+    <button class="print-btn-side dev-msg-btn">💬 &nbsp;Message Developer</button>
+  </a>
+
+  <button class="print-btn-side" id="logoutBtn" onclick="logoutUser()" style="display:none; background: rgba(224,92,151,0.10); border-color: rgba(224,92,151,0.30); color: #E05C97;">🚪 &nbsp;Logout</button>
+  
+  <!-- <div class="footer-credit">Developed by <a href="https://github.com/TheMaker0" target="_blank" rel="noopener noreferrer">Mark Glenn Serinas</a></div> -->
+
+  <style>
+    .db-dropdown-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .main-dropdown-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+    }
+
+    .main-dropdown-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .db-dropdown-menu {
+      display: none; /* Hidden by default */
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+      padding-left: 12px; /* Indents the sub-buttons nicely */
+      border-left: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Shows the menu when this utility class is active */
+    .db-dropdown-menu.show {
+      display: flex;
+    }
+
+    /* Message Developer custom hover state styling */
+    .dev-msg-btn {
+      width: 100%;
+      cursor: pointer;
+    }
+  </style>
+
+  <script>
+    function toggleDbMenu() {
+      const menu = document.getElementById('dbDropdownMenu');
+      menu.classList.toggle('show');
+    }
+
+    // Optional: Closes the dropdown if user clicks outside of it
+    window.onclick = function(event) {
+      if (!event.target.matches('.main-dropdown-btn')) {
+        const dropdown = document.getElementById('dbDropdownMenu');
+        if (dropdown && dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+        }
+      }
+    }
+  </script>
+</div>
+</aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="main-topbar">
+      <div class="topbar-head">
+        <div>
+          <div class="page-title" id="pageTitle">All Tasks</div>
+          <div class="user-badge" id="userBadge">User: Guest</div>
+        </div>
+        <div class="topbar-actions">
+          <button class="topbar-add-btn" onclick="openSheet('todo')">+ Add Task</button>
+          <button class="topbar-add-btn import-main-btn" onclick="openPad()">📝 Import Pad</button>
+          <button class="topbar-add-btn import-main-btn" id="adminPanelBtn" onclick="openAdminPanel()" style="display:none;">👑 Admin</button>
+          <button id="supportBtn" class="support-top-btn" onclick="openSupportModal()" title="Support">✕</button>
+          <!-- <button class="topbar-add-btn import-main-btn" onclick="openUserModal()">👤 User</button> -->
+        </div>
+      </div>
+
+      <div class="tabs-bar" id="desktopTabs">
+        <!-- <div class="tab" data-tab="dashboard">📊 Dashboard</div> -->
+        <div class="tab active" data-tab="all">All <span class="tab-count" id="tcAllD">0</span></div>
+        <div class="tab" data-tab="todo">Todo <span class="tab-count" id="tcTodoD">0</span></div>
+        <div class="tab" data-tab="ongoing">Ongoing <span class="tab-count" id="tcOngoingD">0</span></div>
+        <div class="tab" data-tab="pending">Pending <span class="tab-count" id="tcPendingD">0</span></div>
+        <div class="tab" data-tab="note">Notes <span class="tab-count" id="tcNoteD">0</span></div>
+        <div class="tab" data-tab="done">Done <span class="tab-count" id="tcDoneD">0</span></div>
+        <div class="tab" data-tab="slack">Slack <span class="tab-count" id="tcSlackM">0</span></div>
+      </div>
+    </div>
+
+    <div class="scroll-area" id="scrollArea">
+      <div class="cards-grid" id="listContainer"></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="dbFileInput" accept="application/json" style="display:none" onchange="handleDbFile(event)">
+
+<!-- ════════ MOBILE FAB ════════ -->
+<div class="mobile-fab-area">
+  <div class="mob-fab-row">
+    <button class="mob-fab" id="mobFab" onclick="openSheet('todo')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- ════════ BOTTOM SHEET (Add/Edit Task) ════════ -->
+<div class="sheet-bg" id="sheetBg" onclick="closeSheetBg(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <div class="sheet-title" id="sheetTitle">New Item</div>
+      <div class="sheet-close" onclick="closeSheet()">✕</div>
+    </div>
+    <div class="sheet-body">
+      <div class="inp-group" id="titleGroup">
+        <div class="inp-label">Task</div>
+        <input class="inp" id="inpTitle" placeholder="What needs to be done?">
+      </div>
+      <div class="inp-group" id="descGroup">
+        <div class="inp-label">Description (optional)</div>
+        <textarea class="txta" id="inpDesc" placeholder="Add more details…"></textarea>
+      </div>
+      <!-- Account field (shown for ongoing tasks) -->
+      <div class="inp-group" id="accountGroup" style="display:none;">
+        <div class="inp-label">Account</div>
+        <input class="inp" id="inpAccount" placeholder="e.g. alangalang, ProjectX…">
+      </div>
+      <div class="inp-group" id="typeGroup">
+        <div class="inp-label">Type</div>
+        <div class="type-row">
+          <div class="type-btn sel-todo" data-type="todo"    onclick="selectType('todo')">✅ Todo</div>
+          <div class="type-btn"          data-type="ongoing" onclick="selectType('ongoing')">🔄 Ongoing</div>
+          <div class="type-btn"          data-type="pending" onclick="selectType('pending')">⏳ Pending</div>
+          <div class="type-btn"          data-type="note"    onclick="selectType('note')">📝 Note</div>
+        </div>
+      </div>
+      <div class="inp-group" id="padGroup" style="display:none;">
+        <div class="inp-label">Import Pad</div>
+        <textarea class="txta" id="inpPad" placeholder="Paste lines here…"></textarea>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;">First line becomes task title, second line becomes account. Remaining lines become description.</div>
+      </div>
+      <div class="inp-group" id="timeGroup" style="display:none;">
+        <div class="inp-label">Start / End Time</div>
+        <div class="time-fields">
+          <input class="inp" type="time" id="inpStartTime" placeholder="Start time" onclick="openClockPicker('inpStartTime')" onfocus="openClockPicker('inpStartTime')">
+          <input class="inp" type="time" id="inpEndTime" placeholder="End time" onclick="openClockPicker('inpEndTime')" onfocus="openClockPicker('inpEndTime')">
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;">Tap a time field to open the picker. Leave blank to start later.</div>
+      </div>
+
+      <style>
+        #clockPickerBg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:10000; align-items:center; justify-content:center; }
+        #clockPicker { width:min(420px,92vw); background: linear-gradient(180deg, rgba(15,17,22,0.98), var(--surface)); border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:22px; box-shadow:0 26px 60px rgba(0,0,0,0.45); }
+        #clockPicker .picker-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+        #clockPicker .picker-title { font-weight:700; font-size:14px; letter-spacing:0.15em; text-transform:uppercase; color:#E5E7EB; }
+        #clockPicker .picker-card { display:flex; gap:12px; align-items:center; }
+        #clockPicker .picker-value { width:100px; height:100px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:22px; display:flex; align-items:center; justify-content:center; font-size:42px; font-weight:800; color:var(--text); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+        #clockPicker .picker-minute-group { display:flex; flex-direction:column; gap:12px; flex:1; }
+        #clockPicker .picker-time-row { display:flex; gap:10px; align-items:center; }
+        #clockPicker .picker-minute { flex:1; min-width:0; }
+        #clockPicker .picker-button-wrap { display:flex; gap:8px; }
+        #clockPicker .picker-btn { height:46px; min-width:90px; padding:0 18px; border-radius:14px; border:none; font-weight:700; cursor:pointer; transition: transform 0.18s ease, filter 0.18s ease; }
+        #clockPicker .picker-btn:hover { transform: translateY(-1px); }
+        #clockPicker .picker-btn.primary { background: var(--todo); color:#0E0F13; }
+        #clockPicker .picker-btn.secondary { background: rgba(255,255,255,0.05); color: var(--text); border:1px solid rgba(255,255,255,0.12); }
+        #clockPicker .picker-slider { -webkit-appearance:none; appearance:none; width:100%; height:10px; border-radius:999px; background: rgba(255,255,255,0.12); outline:none; }
+        #clockPicker .picker-slider::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:18px; height:18px; border-radius:50%; background: var(--todo); border: 2px solid #fff; box-shadow: 0 0 0 4px rgba(255,255,255,0.12); cursor:pointer; }
+        #clockPicker .picker-slider::-moz-range-thumb { width:18px; height:18px; border-radius:50%; background: var(--todo); border: 2px solid #fff; cursor:pointer; }
+        #clockPicker .picker-slider:focus { outline:none; box-shadow: 0 0 0 4px rgba(78,204,163,0.2); }
+        #clockPicker button.picker-toggle { background: rgba(255,255,255,0.08); color:#fff; border-radius:14px; padding:0 16px; border:none; min-width:68px; }
+      </style>
+      <!-- Custom Clock Picker -->
+      <div id="clockPickerBg">
+        <div id="clockPicker">
+          <div class="picker-header">
+            <div class="picker-title">Select Time</div>
+            <button onclick="closeClockPicker()" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:var(--muted)">✕</button>
+          </div>
+          <div class="picker-card">
+            <div id="pickerHour" class="picker-value">7</div>
+            <div class="picker-minute-group">
+              <div class="picker-time-row">
+                <div id="pickerMinute" class="picker-value picker-minute">00</div>
+                <button id="ampmBtn" onclick="toggleAmPm()" class="picker-toggle">AM</button>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <input id="pickerHourInput" type="range" min="1" max="12" value="7" oninput="updatePickerHour(this.value)" class="picker-slider">
+                <input id="pickerMinuteInput" type="range" min="0" max="59" value="0" oninput="updatePickerMinute(this.value)" class="picker-slider">
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:16px;gap:10px;">
+            <button onclick="applyPickerTime()" class="picker-btn primary">Set</button>
+            <button onclick="closeClockPicker()" class="picker-btn secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- <div class="auth-bg" id="authBg" onclick="closeAuthBg(event)">
+  <div class="auth-card" style="position: relative;">
+    <button class="auth-close" onclick="closeUserModal()">✕</button>
+    <div class="auth-title">Focus Account</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-mode="login" onclick="switchAuthMode('login', this)">Login</button>
+      <button class="auth-tab" data-mode="register" onclick="switchAuthMode('register', this)">Register</button>
+    </div>
+    <div class="auth-sub visible" id="authSubLogin">Enter your credentials to login.</div>
+    <div class="auth-sub" id="authSubRegister">Create a new account to get started.</div>
+    <div class="auth-note" id="authNote"></div>
+    <input class="auth-input" id="authUserName" placeholder="Username" autocomplete="off">
+    <input class="auth-input" id="authUserDisplay" placeholder="Full name" autocomplete="name" style="display:none;">
+    <input class="auth-input" id="authUserPassword" type="password" placeholder="Password" autocomplete="new-password">
+    <input class="auth-input" id="authUserPasswordConfirm" type="password" placeholder="Confirm Password" autocomplete="new-password" style="display:none;">
+    <div class="auth-actions">
+      <button class="auth-btn" id="authSubmitBtn" onclick="submitAuth()">Login</button>
+    </div>
+  </div>
+</div> -->
+
+<script src="app.js"></script>
+<script src="print.js"></script>
+
+<!-- Slack Settings Modal -->
+<div id="slackSettingsBg" style="display:none;position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+  <div style="width:420px;background:var(--surface);border-radius:12px;padding:18px;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div style="font-weight:700;color:var(--text);">Slack Settings</div>
+      <button onclick="closeSlackSettings()" style="background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <label style="font-size:12px;color:var(--muted)">Slack Webhook URL or Bot Token</label>
+      <input id="slackWebhookInput" placeholder="https://hooks.slack.com/services/XXX/YYY/ZZZ" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);">
+      <label style="font-size:12px;color:var(--muted);margin-top:6px;">Bot Token (optional — use when you want editable messages)</label>
+      <input id="slackBotInput" placeholder="xoxb-... (bot token)" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);">
+      <label style="font-size:12px;color:var(--muted)">Target (channel or @user) — required for bot token</label>
+      <input id="slackTargetInput" placeholder="#channel or @username" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);">
+      <div style="font-size:12px;color:var(--muted);">If provided, this will override the webhook's default channel (requires webhook permission).</div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
+        <button onclick="clearSlackSettings()" style="background:transparent;border:1px solid var(--border);padding:8px 12px;border-radius:8px;color:var(--text);">Clear</button>
+        <button onclick="saveSlackSettings()" style="background:var(--todo);border:none;padding:8px 12px;border-radius:8px;color:#fff;font-weight:700;">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Slack settings button -->
+<button id="slackSettingsBtn" onclick="openSlackSettings()" title="Slack settings" style="position:fixed;right:18px;bottom:18px;width:46px;height:46px;border-radius:12px;background:#4A154B;color:#fff;border:none;box-shadow:0 8px 20px rgba(74,21,75,0.25);z-index:15000;display:flex;align-items:center;justify-content:center;font-weight:700;">✉️</button>
+
+<!-- Support modal -->
+<div id="supportModalBg">
+  <div id="supportModal">
+    <div class="left-qr">
+      <div class="left-accent"></div>
+      <div class="qr-box">
+        <!-- QR / logo placeholder -->
+        <img src="img/qr.jpg" alt="QR" style="width:86%;height:86%;object-fit:cover;border-radius:12px;"> 
+      </div>
+    </div>
+    <div class="right">
+      <div class="modal-title">Support me and i remove this —<br>Buy Me a <span style="color: #ffdd57">Coffee</span></div>
+      <div class="modal-sub">Every coffee helps me keep going. Thank you! ☕</div>
+      <div class="divider"><div></div><div class="heart">♡</div><div></div></div>
+    </div>
+    <button class="modal-close" onclick="closeSupportModal()">✕</button>
+  </div>
+</div>
+
+<script>
+  // Avatar show/hide helper
+  (function(){
+    const av = document.getElementById('bgAvatar');
+    if (!av) return;
+    av.style.display = 'none';
+    av.addEventListener('load', () => { av.style.display = 'block'; });
+    av.addEventListener('error', () => { av.style.display = 'none'; });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+{
+  "items": [
+    {
+      "id": 1781267783295,
+      "type": "ongoing",
+      "title": "sdasdasd",
+      "desc": "",
+      "account": "internal",
+      "done": true,
+      "created": 1781267783295,
+      "timeIn": 1781267787758,
+      "timeOut": 1781267803159
+    },
+    {
+      "id": 1781268406695,
+      "type": "ongoing",
+      "title": "SDASDASD",
+      "desc": "",
+      "account": "SADSAD",
+      "done": true,
+      "created": 1781268406695,
+      "timeIn": 1781268408711,
+      "timeOut": 1781268509711
+    },
+    {
+      "id": 1781268783551,
+      "type": "ongoing",
+      "title": "DSDASDAD",
+      "desc": "",
+      "account": "DASDSA",
+      "done": true,
+      "created": 1781268783551,
+      "timeIn": 1781232840000,
+      "timeOut": 1781268785671
+    },
+    {
+      "id": 1781269309799,
+      "type": "ongoing",
+      "title": "FASDASD",
+      "desc": "",
+      "account": "ASDAS",
+      "done": true,
+      "created": 1781269309799,
+      "timeIn": 1781269314711,
+      "timeOut": 1781269704440
+    },
+    {
+      "id": 1781271264961,
+      "type": "ongoing",
+      "title": "sdadasdasd",
+      "desc": "",
+      "account": "asdas",
+      "done": true,
+      "created": 1781271264961,
+      "timeIn": 1781271266751,
+      "timeOut": 1781401838262
+    },
+    {
+      "id": 1781401973056,
+      "type": "ongoing",
+      "title": "hello",
+      "desc": "",
+      "account": "internal",
+      "done": true,
+      "created": 1781401973056,
+      "timeIn": 1781401980000,
+      "timeOut": 1781401994310
+    },
+    {
+      "id": 1781402044784,
+      "type": "ongoing",
+      "title": "dasdsdad",
+      "desc": "",
+      "account": "kkkkkkkkkkkkkkkkkkkk",
+      "done": true,
+      "created": 1781402044784,
+      "timeIn": 1781402047830,
+      "timeOut": 1781403420000
+    },
+    {
+      "id": 1781402329928,
+      "type": "ongoing",
+      "title": "DASDASDSAD",
+      "desc": "",
+      "account": "SDASD",
+      "done": true,
+      "created": 1781402329928,
+      "timeIn": 1781402332566,
+      "timeOut": 1781407883447
+    },
+    {
+      "id": 1781408030456,
+      "type": "ongoing",
+      "title": "dasds",
+      "desc": "",
+      "account": "sdadas",
+      "done": true,
+      "created": 1781408030456,
+      "timeIn": 1781391600000,
+      "timeOut": 1781410774776
+    },
+    {
+      "id": 1781410707656,
+      "type": "ongoing",
+      "title": "ONGOING",
+      "desc": "",
+      "account": "02-015\tATTENDANCE > LEAVE APPLICATION > ENDORSED > Develop an automated computation feature for employee leave credits",
+      "done": true,
+      "created": 1781410707656,
+      "timeIn": 1781391600000,
+      "timeOut": 1781402400000
+    },
+    {
+      "id": 1781410770464,
+      "type": "ongoing",
+      "title": "02-013\tEMPLOYEES > EMPLOYEE DEDUCTIONS > ADD > Allow manual entry and adjustment of GSIS Personal Share and Government Share.",
+      "desc": "",
+      "account": "MILAGROS SYSTEM",
+      "done": true,
+      "created": 1781410770464,
+      "timeIn": 1781410775936,
+      "timeOut": 1781412393634,
+      "etc": "6:50 PM"
+    },
+    {
+      "id": 1781423729995,
+      "type": "ongoing",
+      "title": "CHECKING ALL WEBSITES MANUAL AND AUTO",
+      "desc": "ETC: 9:00 PM",
+      "account": "MILAGROS SYSTEM",
+      "done": true,
+      "created": 1781423729995,
+      "timeIn": 1781423735570,
+      "timeOut": 1782002342926,
+      "etc": "6:00 AM"
+    },
+    {
+      "id": 1782003368270,
+      "type": "ongoing",
+      "title": "hello",
+      "desc": "",
+      "account": "internal",
+      "done": true,
+      "created": 1782003368270,
+      "timeIn": null,
+      "timeOut": 1782006359942,
+      "etc": "6:00 AM"
+    },
+    {
+      "id": 1782006693417,
+      "type": "ongoing",
+      "title": "PRINTER",
+      "desc": "",
+      "account": "INTERNAL",
+      "done": false,
+      "created": 1782006693417,
+      "timeIn": 1782008538383,
+      "timeOut": null
+    }
+  ],
+  "history": [
+    {
+      "id": 1781411558865.0852,
+      "type": "ongoing",
+      "title": "EMPLOYEES > EMPLOYEE DEDUCTIONS > ADD > Allow manual entry and adjustment of GSIS Personal Share and Government Share.",
+      "desc": "",
+      "code": "02-013",
+      "account": "MILAGROS SYSTEM",
+      "done": false,
+      "created": 1781411558865,
+      "timeIn": 1781411574584,
+      "timeOut": null,
+      "etc": "5:00 PM",
+      "deletedAt": 1781411827689
+    },
+    {
+      "id": 1781412390617,
+      "type": "ongoing",
+      "title": "CHECKING ALL WEBSITES",
+      "desc": "",
+      "account": "INTERNAL",
+      "done": false,
+      "created": 1781412390617,
+      "timeIn": 1781397000000,
+      "timeOut": 1781412879024,
+      "etc": "8:50 AM",
+      "deletedAt": 1781422968642
+    },
+    {
+      "id": 1781413515347,
+      "type": "ongoing",
+      "title": "SDASDSA",
+      "desc": "",
+      "account": "RIC",
+      "done": false,
+      "created": 1781413515347,
+      "timeIn": 1781422928402,
+      "timeOut": null,
+      "etc": "6:00 PM",
+      "deletedAt": 1781422970170
+    },
+    {
+      "id": 1781423693786,
+      "type": "ongoing",
+      "title": "ONGOING",
+      "desc": "INTERNAL\nETC: 7:00 PM",
+      "account": "CHECKING ALL THE WEBSITES AND AUTO MANUAL UPDATE",
+      "done": false,
+      "created": 1781423693786,
+      "timeIn": null,
+      "timeOut": null,
+      "deletedAt": 1781423703226
+    },
+    {
+      "id": 1781422959244,
+      "type": "ongoing",
+      "title": "ONGOING",
+      "desc": "INTERNAL\nETC: 2:50 PM",
+      "account": "CHECKING ALL WEBSITES",
+      "done": false,
+      "created": 1781422959244,
+      "timeIn": 1781422981353,
+      "timeOut": 1781423362474,
+      "etc": "6:00 AM",
+      "deletedAt": 1781423733218
+    },
+    {
+      "id": 1781423598658,
+      "type": "ongoing",
+      "title": "ONGOING",
+      "desc": "MILAGROS SYSTEM\nETC:  5:00PM",
+      "account": "PANIS",
+      "done": false,
+      "created": 1781423598658,
+      "timeIn": 1781423608746,
+      "timeOut": null,
+      "etc": "1:00 PM",
+      "deletedAt": 1781423734034
+    }
+  ],
+  "dayLogs": [
+    {
+      "id": 1781423911258,
+      "label": "Day 2",
+      "date": "Jun 14, 2026",
+      "entries": [
+        {
+          "itemId": 1781423729995,
+          "title": "CHECKING ALL WEBSITES MANUAL AND AUTO",
+          "account": "MILAGROS SYSTEM",
+          "timeIn": 1782018240000,
+          "timeOut": 1781425680000,
+          "addedAt": 1781425612900
+        },
+        {
+          "itemId": 1782003046477,
+          "title": "New task",
+          "account": "",
+          "timeIn": 1781977500000,
+          "timeOut": null,
+          "addedAt": 1782003046477
+        },
+        {
+          "itemId": 1782006787391,
+          "title": "New task",
+          "account": "",
+          "timeIn": 1781976180000,
+          "timeOut": null,
+          "addedAt": 1782006787391
+        }
+      ]
+    }
+  ]
+}

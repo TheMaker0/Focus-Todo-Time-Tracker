@@ -1,0 +1,68 @@
+{
+  "items": [
+    {
+      "id": 1716200000000,
+      "type": "todo",
+      "title": "Set up project structure",
+      "desc": "Create folders and initial config files.",
+      "account": "",
+      "done": false,
+      "created": 1716200000000,
+      "timeIn": 1716200000000,
+      "timeOut": null
+    },
+    {
+      "id": 1716200005000,
+      "type": "ongoing",
+      "title": "Design the new dashboard UI",
+      "desc": "Working on wireframes and component layout.",
+      "account": "alangalang",
+      "done": false,
+      "created": 1716200005000,
+      "timeIn": 1716200005000,
+      "timeOut": null
+    },
+    {
+      "id": 1716200010000,
+      "type": "pending",
+      "title": "Review pull request #42",
+      "desc": "Waiting for feedback from the team.",
+      "account": "",
+      "done": false,
+      "created": 1716200010000,
+      "timeIn": 1716200010000,
+      "timeOut": null
+    },
+    {
+      "id": 1716200015000,
+      "type": "note",
+      "title": "Meeting notes — May 20",
+      "desc": "Discussed roadmap priorities. Next sprint: Records module + Auth overhaul.",
+      "account": "",
+      "done": false,
+      "created": 1716200015000,
+      "timeIn": null,
+      "timeOut": null
+    },
+    {
+      "id": 1716200020000,
+      "type": "todo",
+      "title": "Write unit tests for login",
+      "desc": "",
+      "account": "",
+      "done": false,
+      "created": 1716200020000,
+      "timeIn": 1716200020000,
+      "timeOut": null
+    }
+  ],
+  "history": [],
+  "dayLogs": [
+    {
+      "id": 1716199990000,
+      "label": "Day 1",
+      "date": "May 20, 2026",
+      "entries": []
+    }
+  ]
+}

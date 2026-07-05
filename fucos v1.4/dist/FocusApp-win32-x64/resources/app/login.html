@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0E0F13;
+  --surface: #16181F;
+  --surface2: #1E2029;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #F0EEE8;
+  --muted: #6B6F80;
+  --muted2: #9295A4;
+  --todo: #4ECCA3;
+  --ongoing: #F5A623;
+  --pending: #E05C97;
+  --note: #7B8CFF;
+  --fab: #4ECCA3;
+  --radius: 20px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; font-family: 'Lato', sans-serif; background: radial-gradient(circle at top, rgba(78,204,163,0.18), transparent 30%), radial-gradient(circle at right, rgba(123,140,255,0.14), transparent 25%), var(--bg); color: var(--text); }
+body { display: flex; align-items: center; justify-content: center; padding: 24px; }
+.login-shell { width: min(100%, 520px); }
+.login-header { text-align: center; margin-bottom: 26px; }
+.login-logo { font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800; letter-spacing: -1px; }
+.login-logo span { color: var(--fab); }
+.login-copy { margin-top: 12px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 30px; box-shadow: 0 30px 80px rgba(0,0,0,0.35); }
+.auth-tabs { display: flex; gap: 10px; margin-bottom: 22px; }
+.auth-tab { flex: 1; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted2); font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.2s; }
+.auth-tab.active { background: transparent; border-color: var(--fab); color: var(--fab); }
+.auth-sub { margin-bottom: 18px; font-size: 13px; color: var(--muted); text-align: center; }
+.auth-note { min-height: 20px; margin-bottom: 12px; color: var(--pending); text-align: center; font-size: 13px; }
+.auth-input { width: 100%; padding: 14px 16px; margin-bottom: 16px; border-radius: 14px; border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-size: 14px; }
+.auth-input::placeholder { color: var(--muted); }
+.auth-actions { display: flex; justify-content: center; }
+.auth-btn { width: 100%; padding: 14px 18px; border-radius: 14px; border: none; background: var(--fab); color: #0E0F13; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: transform 0.2s, filter 0.2s; }
+.auth-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.auth-footer { margin-top: 18px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.6; }
+.auth-footer strong { color: var(--text); }
+.login-info { margin-top: 22px; padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); font-size: 12px; color: var(--muted); }
+@media (max-width: 560px) {
+  .login-card { padding: 22px; }
+}
+</style>
+</head>
+<body>
+  <div class="login-shell">
+    <div class="login-header">
+      <div class="login-logo">Focus<span>.</span></div>
+      <div class="login-copy">Secure login to your task workspace. If you already have an account, sign in below.</div>
+    </div>
+
+    <div class="login-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-mode="login">Login</button>
+        <button class="auth-tab" data-mode="register">Register</button>
+      </div>
+      <div class="auth-sub" id="authSubLogin">Enter your credentials to sign in securely.</div>
+      <div class="auth-sub" id="authSubRegister" style="display:none;">Create a new account and start tracking your work.</div>
+      <div class="auth-note" id="authNote"></div>
+      <input type="text" id="authUserName" class="auth-input" placeholder="Username" autocomplete="username">
+      <input type="text" id="authUserDisplay" class="auth-input" placeholder="Full name" autocomplete="name" style="display:none;">
+      <input type="password" id="authUserPassword" class="auth-input" placeholder="Password" autocomplete="current-password">
+      <input type="password" id="authUserPasswordConfirm" class="auth-input" placeholder="Confirm Password" style="display:none;" autocomplete="new-password">
+      <div class="auth-actions">
+        <button class="auth-btn" id="authSubmitBtn">Login</button>
+      </div>
+      <div class="auth-footer">Already have an account? Use the login tab. New here? Switch to register.</div>
+    </div>
+
+<script src="login.js"></script>
+</body>
+</html>
